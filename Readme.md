@@ -16,4 +16,4 @@
 
 ## Run
 
-`$ python stream_graph.py`
+`$ python src/stream_graph.py`
