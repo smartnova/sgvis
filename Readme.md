@@ -1,15 +1,19 @@
 # Stream graph layout project
 
-## Setup:
+## Setup
 
 1. `$ git clone ...`
 2. `$ python3 -m venv venv`
+2. `$ source venv/bin/activate`
 3. `$ pip install -r requirements.txt`
-4. `$ cd src/z3`
-5. `$ python scripts/mk_make.py`
-6. `$ cd build`
-7. `$ make`
+4. If you don't already have it, install Z3:
+    1. `$ git clone https://github.com/Z3Prover/z3.git`
+    2. `$ cd z3`
+    3. `$ python scripts/mk_make.py`
+    4. `$ cd build && make`
+    5. `$ export PYTHONPATH=<YOUR_FILE_PATH_TO_Z3>/build/python`
+    6. `$ export LD_LIBRARY_PATH=<YOUR_FILE_PATH_TO_Z3>/build`
 
 ## Run
 
-`python src/z3/build/python/stream_graph.py`
+`$ python stream_graph.py`
