@@ -4,7 +4,7 @@ import random
 
 import networkx as nx
 
-from dataset import *
+from generator.sgdataset import *
 
 class ErdosRenyi(AbstractGenerator):
     '''
@@ -15,7 +15,7 @@ class ErdosRenyi(AbstractGenerator):
 
     Parameters:
         n_vertices: number of vertices
-        n_levels:   number of levels
+        n_timesteps:   number of timesteps
     '''
 
     GENERATOR_VERSION = 0.1
@@ -23,18 +23,18 @@ class ErdosRenyi(AbstractGenerator):
     def __init__(self):
         super().__init__()
 
-    def generate(self, *, n_vertices = 15, n_levels = 3):
+    def generate(self, *, n_vertices = 15, n_timesteps = 3):
         n_node_pairs = n_vertices * (n_vertices - 1) // 2
         p_min, p_max = (n_vertices + 3) // 4 / n_node_pairs, n_vertices // 2 / n_node_pairs
 
         return [list(nx.erdos_renyi_graph(n_vertices, random.uniform(p_min, p_max)).edges)
-                for _ in range(n_levels)]
+                for _ in range(n_timesteps)]
 
     def parameters(self):
         return [
-            { 'n_vertices': n, 'n_levels': n_levels }
+            { 'n_vertices': n, 'n_timesteps': n_timesteps }
             for n in range(10, 25+1, 3)
-            for n_levels in range(2, 5+1)
+            for n_timesteps in range(2, 5+1)
             for _ in range(5) ]
 
 
@@ -42,10 +42,7 @@ class ErdosRenyi(AbstractGenerator):
 if __name__ == '__main__':
     ErdosRenyi().save()
 
-    '''
+    # Load the dataset and presents the overview of the data
+
     d = AbstractDataset.load('ErdosRenyi')
-    print(d.format_version, d.kind, d.params, d.date, d.creator, d.doc)
-    print(d.dataset[0].params, d.dataset[0].data)
-    for data in d.dataset:
-        print([len(level) for level in data.data])
-    '''
+    AbstractDataset.output(d)

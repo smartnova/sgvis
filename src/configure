@@ -1,0 +1,8 @@
+#!/bin/sh
+
+# This script addes the "src" directory to "site.path"
+
+usersite=`python -m site --user-site`
+
+mkdir -p $usersite
+echo "`pwd`" > $usersite/sgvis.pth
