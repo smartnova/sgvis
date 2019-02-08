@@ -13,7 +13,9 @@ class SG20190122(AbstractDataset):
     def __init__(self):
         super().__init__()
         self.d['dataset'].append(
-            {'params': [],
+            {'params': {
+                'n_vertices': 10,
+                'n_timesteps': 2 },
              'content': [[(0, 1), (0, 2), (0, 3), (2, 3), (3, 4), (4, 9), (5, 8), (8, 9)],
                          [(0, 2), (0, 7), (1, 2), (1, 3), (3, 4), (4, 9), (5, 6), (8, 9)]]})
 

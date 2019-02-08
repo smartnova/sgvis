@@ -2,12 +2,15 @@
     "format_version": 0.1,
     "kind": "SG20190122",
     "doc": "\n    Finn's first stream-graph dataset\n\n    In fact this data was created from his random generator and nothing so special.  It first appeared\n    on our Slack, on Jan 22, 2019, as the first successful result of Finn's z3 solver, it was given a\n    historical value.\n    ",
-    "date": "2019-02-08 07:09:39.356656",
+    "date": "2019-02-08 13:17:03.478997",
     "creator": "wakita",
     "params": {},
     "dataset": [
         {
-            "params": [],
+            "params": {
+                "n_vertices": 10,
+                "n_timesteps": 2
+            },
             "content": [
                 [
                     [
