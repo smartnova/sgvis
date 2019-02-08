@@ -37,10 +37,9 @@ def optimize(n_vertices, timesteps):
     logging.info('Problem formulated ({}).  Model checking...'.format(time.time() - t))
 
     solver.check()
-    logging.info('Problem formulated', time.time() - t)
+    logging.info('Problem solved ({})'.format(time.time() - t))
 
     print(solver.model())
-    logging.info(time.time() - t)
 
 
 if __name__ == '__main__':
