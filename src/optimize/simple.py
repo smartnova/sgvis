@@ -9,6 +9,11 @@ import time
 
 from z3 import *
 
+if __name__ == '__main__' and __package__ is None:
+    from os import path
+    # To ensure the generator import works even with wierd Z3 python paths
+    sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
+
 from generator import sgdataset
 
 def Abs(x):
