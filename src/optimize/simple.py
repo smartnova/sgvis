@@ -16,8 +16,10 @@ if __name__ == '__main__' and __package__ is None:
 
 from generator import sgdataset
 
+
 def Abs(x):
     return If(x >= 0, x, -x)
+
 
 def constraint_system(n_vertices, timesteps):
     solver = Solver()
@@ -44,6 +46,7 @@ def constraint_system(n_vertices, timesteps):
 
 TIMEOUT = 1 * 60 * 1000  # 1 min time out set in milliseconds
 
+
 def solve(problem):
     info = problem['info']
     t = time.time()
@@ -69,6 +72,7 @@ def solve(problem):
     info['history'] = history
     logging.info('{} Distance reduction sequence: {}'.format('+' if result == unsat else '-', history))
     return info
+
 
 if __name__ == '__main__':
 
