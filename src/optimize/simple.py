@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
+import sys
 import tempfile
 import time
 
@@ -16,41 +17,49 @@ logging.basicConfig(
         logging.FileHandler('simple.log'),
         logging.StreamHandler() ])
 
-TIMEOUT = 1 * 60 * 1000  # 1 min time out set in milliseconds
-
 def Abs(x):
     return If(x >= 0, x, -x)
 
-def optimize(n_vertices, timesteps):
-    t = time.time()
-    solver = Optimize()
+def constraint_system(n_vertices, timesteps):
+    solver = Solver()
 
     # Assignment of vertices to vertical positions in the drawing
-    # `assignment` is represented by I_i, where i stands for the i'th vertex
+    # `Assignment` is represented by I_i, where i stands for the i'th vertex
     # and the value of I_i is the position.
-    assignment = [Int('I{}'.format(i)) for i in range(n_vertices)]
-    for position in assignment:
-        solver.add(position >= 0)
-        solver.add(position < n_vertices)
-    solver.add(Distinct(assignment))
+    Assignment = [Int('I{}'.format(i)) for i in range(n_vertices)]
+    for Position in Assignment:
+        solver.add(Position >= 0)
+        solver.add(Position < n_vertices)
+    solver.add(Distinct(Assignment))
 
     # The optimization objective is to minimize the accumulated edge distances
     edges = sum(timesteps, [])  # collecting all the edges
-    Distance = Sum([Abs(assignment[u] - assignment[v]) for u, v in edges])
+    Distance = Sum([Abs(Assignment[u] - Assignment[v]) for u, v in edges])
 
     edges = [tuple(edge) for edge in edges]
-    logging.info('Problem (#vertices = {}, #connected pairs = {})'.format(n_vertices, len(set(edges))))
-    solver.minimize(Distance)
+    info = {'n_vertices': n_vertices, 'n_edges': len(set(edges))}
 
-    solver.set('timeout', TIMEOUT)
-    result = solver.check()
-    if result == z3.unknown:
-        logging.info('Timeout after {} seconds'.format(TIMEOUT // 1000))
-    else:
-        logging.info('Problem solved in {:02.3f}sec'.format(time.time() - t))
+    return {'Assignment': Assignment, 'solver': solver, 'Distance': Distance, 'info': info}
 
-    # print(solver.model())
 
+TIMEOUT = 1 * 60 * 1000  # 1 min time out set in milliseconds
+
+def solve(problem):
+    t = time.time()
+    solver, Assignment, Distance = problem['solver'], problem['Assignment'], problem['Distance']
+
+    history = []
+    max_distance = 1 << 31
+
+    while True:
+        solver.add(Distance < max_distance)
+        if solver.check() == z3.unknown: break
+        try: current_best = solver.model()
+        except: break
+        max_distance = current_best.evaluate(Distance)
+        history.append(max_distance.as_long())
+
+    logging.info('Distance = {}: {}, {}'.format(max_distance, [current_best[v] for v in Assignment], history))
 
 if __name__ == '__main__':
     t = time.time()
@@ -58,4 +67,5 @@ if __name__ == '__main__':
     logging.debug(dataset['kind'], dataset['doc'])
     for data in dataset['dataset']:
         params = data['params']
-        result = optimize(params['n_vertices'], data['content'])
+        problem = constraint_system(params['n_vertices'], data['content'])
+        solve(problem)
