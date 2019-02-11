@@ -45,6 +45,7 @@ def constraint_system(n_vertices, timesteps):
 TIMEOUT = 1 * 60 * 1000  # 1 min time out set in milliseconds
 
 def solve(problem):
+    logging.info(problem['info'])
     t = time.time()
     solver, Assignment, Distance = problem['solver'], problem['Assignment'], problem['Distance']
 
@@ -53,13 +54,19 @@ def solve(problem):
 
     while True:
         solver.add(Distance < max_distance)
-        if solver.check() == z3.unknown: break
-        try: current_best = solver.model()
-        except: break
+        timeout = int((t + 60 - time.time()) * 1000)
+        if timeout < 0: break
+        solver.set('timeout', timeout)
+        result = solver.check()
+        if result != sat: break
+        current_best = solver.model()
         max_distance = current_best.evaluate(Distance)
         history.append(max_distance.as_long())
 
-    logging.info('Distance = {}: {}, {}'.format(max_distance, [current_best[v] for v in Assignment], history))
+    logging.info('{}: Distance = {}: {}, {}'.format('+' if result == unsat else '-',
+                                                    max_distance,
+                                                    [current_best[v] for v in Assignment],
+                                                    history))
 
 if __name__ == '__main__':
     t = time.time()
