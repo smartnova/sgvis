@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
+import json
 import logging
+import os
 import sys
 import tempfile
 import time
@@ -8,14 +10,6 @@ import time
 from z3 import *
 
 from generator import sgdataset
-from generator import SG20190122
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s %(message)s',
-    handlers = [
-        logging.FileHandler('simple.log'),
-        logging.StreamHandler() ])
 
 def Abs(x):
     return If(x >= 0, x, -x)
@@ -45,7 +39,7 @@ def constraint_system(n_vertices, timesteps):
 TIMEOUT = 1 * 60 * 1000  # 1 min time out set in milliseconds
 
 def solve(problem):
-    logging.info(problem['info'])
+    info = problem['info']
     t = time.time()
     solver, Assignment, Distance = problem['solver'], problem['Assignment'], problem['Distance']
 
@@ -63,16 +57,37 @@ def solve(problem):
         max_distance = current_best.evaluate(Distance)
         history.append(max_distance.as_long())
 
-    logging.info('{}: Distance = {}: {}, {}'.format('+' if result == unsat else '-',
-                                                    max_distance,
-                                                    [current_best[v] for v in Assignment],
-                                                    history))
+    info['solution'] = [current_best[v].as_long() for v in Assignment]
+    info['distance'] = max_distance.as_long()
+    info['optimum'] = result == unsat
+    info['history'] = history
+    logging.info('{} Distance reduction sequence: {}'.format('+' if result == unsat else '-', history))
+    return info
 
 if __name__ == '__main__':
+
     t = time.time()
-    dataset = sgdataset.AbstractDataset.load('ErdosRenyi')
+    datasetname = 'ErdosRenyi'
+    dataset = sgdataset.AbstractDataset.load(datasetname)
+
+    os.makedirs('/tmp/sgvis', exist_ok=True)
+    datetime = time.strftime('%Y%m%d-%H%M%S').format(datasetname)
+    logpath = time.strftime('/tmp/sgvis/{}-{}.log').format(datasetname, datetime)
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s %(message)s',
+        handlers = [
+            logging.FileHandler(logpath),
+            logging.StreamHandler() ])
+
     logging.debug(dataset['kind'], dataset['doc'])
-    for data in dataset['dataset']:
+    dataset = dataset['dataset']
+
+    for data in dataset:
         params = data['params']
         problem = constraint_system(params['n_vertices'], data['content'])
-        solve(problem)
+        data['result'] = solve(problem)
+
+    resultpath = time.strftime('/tmp/sgvis/{}-{}.json').format(datasetname, datetime)
+    with open(resultpath, 'w') as w: json.dump(dataset, w)
