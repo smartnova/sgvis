@@ -17,3 +17,11 @@
 ## Run
 
 `$ python src/stream_graph.py`
+
+-----
+
+# Ken's Dropbox link
+
+- [SVG Images](https://www.dropbox.com/sh/eaptgncxumib60l/AAAJKIoud9ptv7l1MNh5u0Qoa?dl=0)
+
+- [Logs](https://www.dropbox.com/sh/j9antzivw7ic728/AABMy0YSpCfXipgnXLYpKVUqa?dl=0)
