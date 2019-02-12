@@ -28,6 +28,7 @@ def constraint_system(n_vertices, timesteps):
 
     # The optimization objective is to minimize the accumulated edge distances
     edges = sum(timesteps, [])  # collecting all the edges
+    #edges = set([tuple(e) for e in edges])
     Distance = Sum([Abs(Assignment[u] - Assignment[v]) for u, v in edges])
 
     edges = [tuple(edge) for edge in edges]
