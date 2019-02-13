@@ -5,6 +5,7 @@
 import sys
 from PyQt5 import QtGui, QtSvg
 from PyQt5.QtWidgets import QApplication
+import json
 
 
 def render_stream_graph(ordered_nodes, timestamps, svg_path='stream_graph.svg'):
@@ -119,5 +120,14 @@ def run_with_test_data():
     render_stream_graph(ordered_nodes, timestamps)
 
 
+def run_with_sample_output():
+    raw = open('sample_output.json').read()
+    data = json.loads(raw)
+    ordered_nodes = data['result']['solution']
+    timestamps = data['content']
+    render_stream_graph(ordered_nodes, timestamps)
+
+
 if __name__ == '__main__':
-    run_with_test_data()
+    # run_with_test_data()
+    run_with_sample_output()
