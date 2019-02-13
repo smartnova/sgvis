@@ -30,7 +30,7 @@ def optimize_stream_graph(nodes, edges):
     # Distance
 
     edge_time_tuples = []
-    for time, edge_list in edges.items():
+    for time, edge_list in enumerate(edges):
         for edge in edge_list:
             edge_time_tuples.append((time, edge[0], edge[1]))
     edge_lengths = [Int('d_%s,%s_%s' % (t, u, v)) for t, u, v in edge_time_tuples]
@@ -61,11 +61,11 @@ def optimize_stream_graph(nodes, edges):
 # n: number of nodes. m: number of timestamps
 def generate_random_input_data(n, m):
     example_nodes = list(range(n))
-    example_edges = {}
+    example_edges = []
 
     for i in range(m):
-        example_edges[i] = []
         number_of_edges = randint(3, int(n / 2))
+        example_edges.append([])
 
         for j in range(number_of_edges):
             source = randint(0, n - 1)

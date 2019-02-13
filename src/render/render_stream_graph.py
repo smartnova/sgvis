@@ -7,13 +7,13 @@ from PyQt5 import QtGui, QtSvg
 from PyQt5.QtWidgets import QApplication
 
 
-def render_stream_graph(nodes, edges, svg_path='stream_graph.svg'):
+def render_stream_graph(ordered_nodes, timestamps, svg_path='stream_graph.svg'):
     import svgwrite as svg
 
     include_unordered_example = True
 
     initial_y_offset = 11
-    height = initial_y_offset + 4 + len(nodes) * 4
+    height = initial_y_offset + 4 + len(ordered_nodes) * 4
     size = (135, height) if include_unordered_example else (65, 60)
     g = svg.Drawing(svg_path, size=size, profile='full')
     g.add(g.text('Stream graph ordering', insert=(3, 5),
@@ -28,23 +28,20 @@ def render_stream_graph(nodes, edges, svg_path='stream_graph.svg'):
             g.add(g.text(node, insert=(x_offset, y_offset + 1), fill='black', font_size='2.25', font_family='Verdana'))
 
     if include_unordered_example:
-        render_nodes(sorted(nodes), 3)
+        render_nodes(sorted(ordered_nodes), 3)
 
         # Add arrow image between ordered and unordered
         arrow_resize_factor = 200
-        '''
-        g.add(svg.image.Image(href='render/arrow-drawing-1.png', insert=(63, height / 2),
+        path = '' if __name__ == '__main__' else '../render/'
+        g.add(svg.image.Image(href=path + 'arrow-drawing-1.png', insert=(63, height / 2),
                               size=(1200 / arrow_resize_factor, 1059 / arrow_resize_factor)))
-        '''
 
-    render_nodes(nodes, 75 if include_unordered_example else 3)
+    render_nodes(ordered_nodes, 75 if include_unordered_example else 3)
 
     # ########################## Edges ################################
 
-    def render_edges(edges_to_render, x_offset, ordered=False):
-        #for time, edge_set in edges_to_render.items():
-        time = 0
-        for edge_set in edges:
+    def render_edges(timestamps_to_render, x_offset, ordered=False):
+        for time, edge_set in enumerate(timestamps_to_render):
             for edge in edge_set:
                 x = x_offset + time * 10
                 y = get_y_offset_of_node(edge[0], ordered)
@@ -58,10 +55,9 @@ def render_stream_graph(nodes, edges, svg_path='stream_graph.svg'):
 
                 g.add(svg.shapes.Circle(center=(x, y), r=0.4, stroke_width=0.1, fill='black', stroke='black'))
                 g.add(svg.shapes.Circle(center=(x, target_y), r=0.4, stroke_width=0.1, fill='black', stroke='black'))
-            time = time + 1
 
     def get_y_offset_of_node(node, ordered):
-        i = sorted(nodes).index(node) if ordered else nodes.index(node)
+        i = sorted(ordered_nodes).index(node) if ordered else ordered_nodes.index(node)
         return initial_y_offset + i * 4
 
     # get_curve_radius_offset is a function that takes the y-coordinate of two nodes, and outputs information about
@@ -83,11 +79,12 @@ def render_stream_graph(nodes, edges, svg_path='stream_graph.svg'):
         # preserving a small padding to the next time step even if normal_asymptotic approaches its max value, 1.
         return normal_asymptotic * 15
 
-    render_edges(edges, 12, True)
-    render_edges(edges, 87)
+    render_edges(timestamps, 12, True)
+    render_edges(timestamps, 87)
 
     g.save()
-    # viewer(size, svg_path)
+    if __name__ == '__main__':
+        viewer(size, svg_path)
 
 
 def add_background_lines(g, x, y):
@@ -114,11 +111,13 @@ def viewer(size, svg_path):
 
 
 def run_with_test_data():
-    nodes = list(range(20))
-    edges = {
-        0: [(i, j) for i in range(5, 11) for j in range(5, 11)] + [(0, 19)],
-        1: [(12, i) for i in range(0, 20)]}
-    render_stream_graph(nodes, edges)
+    ordered_nodes = list(range(20))
+    timestamps = [
+        [(i, j) for i in range(5, 11) for j in range(5, 11)] + [(0, 19)],
+        [(12, i) for i in range(0, 20)]
+    ]
+    render_stream_graph(ordered_nodes, timestamps)
 
-# Uncomment to run as an independent script with test data:
-# run_with_test_data()
+
+if __name__ == '__main__':
+    run_with_test_data()
