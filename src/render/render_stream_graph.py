@@ -58,8 +58,11 @@ def render_stream_graph(ordered_nodes, timestamps, svg_path='stream_graph.svg'):
                 g.add(svg.shapes.Circle(center=(x, target_y), r=4, stroke_width=1, fill='black', stroke='black'))
 
     def get_y_offset_of_node(node, ordered):
-        i = sorted(ordered_nodes).index(node) if ordered else ordered_nodes.index(node)
-        return initial_y_offset + i * 40
+        try:
+            i = sorted(ordered_nodes).index(node) if ordered else ordered_nodes.index(node)
+            return initial_y_offset + i * 40
+        except ValueError:
+            raise RuntimeError('An edge in the dataset points to a node outside the dataset.')
 
     # get_curve_radius_offset is a function that takes the y-coordinate of two nodes, and outputs information about
     # how the curve between them should look if they are connected. Specifically, it returns the radius of the curve.

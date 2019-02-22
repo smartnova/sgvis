@@ -4,6 +4,7 @@ import logging
 import sys
 import tempfile
 import time
+import json
 
 from z3 import *
 
@@ -28,7 +29,7 @@ def Abs(x):
     return If(x >= 0, x, -x)
 
 
-def split(n_vertices, timesteps):
+def constraint_set(n_vertices, timesteps, size_difference_param):
     optimizer = Optimize()
 
     partition = [Int('u{}'.format(i)) for i in range(n_vertices)]
@@ -36,57 +37,106 @@ def split(n_vertices, timesteps):
     for node in partition:
         optimizer.add(Or(node == 0, node == 1))
 
-    partition_0_len = Int('0_len')
-    partition_1_len = Int('1_len')
+    size_difference_threshold = int(n_vertices * size_difference_param)
+    print('size_difference_threshold', size_difference_threshold)
 
-    optimizer.add(partition_1_len == Sum([If(partition[x] == 1, 1, 0) for x in range(n_vertices)]))
-    optimizer.add(partition_0_len == n_vertices - partition_1_len)
-
-    # Keep the size of the partitions within a certain threshold of each other
-    size_difference_threshold = int(n_vertices / 5)
-    optimizer.add(Abs(partition_0_len - partition_1_len) <= size_difference_threshold)
+    # Partition size difference is given by | n - (2 * length_of_either_partition) |
+    optimizer.add(Abs(n_vertices - 2 * Sum([partition[x] for x in range(n_vertices)]))
+                  <= size_difference_threshold)
 
     edges = sum(timesteps, [])
-    print('edges', edges)
-    edges_between_partitions = [Int('e{}_{}'.format(i, j)) for i in range(n_vertices) for j in range(n_vertices)]
-
-    def get_edge(u, v):
-        for single_edge in edges_between_partitions:
-            if str(single_edge) == 'e{}_{}'.format(u, v):
-                return single_edge
-        raise RuntimeError('Tried finding edge between node ' + str(u) + ' and node ' + str(v)
-                           + ', but it did not exist.')
-
-    for edge_pair in edges_between_partitions:
-        optimizer.add(Or(edge_pair == 0, edge_pair == 1))
-
-    optimizer.add([Implies(And(partition[x] != partition[y], Or([x, y] in edges, [y, x] in edges)), get_edge(x, y) ==  1)
-                  for x in range(n_vertices) for y in range(n_vertices)])
-    optimizer.minimize(Sum(edges_between_partitions))
+    number_of_cross_partition_edges = Sum([Abs(partition[x] - partition[y]) for [x, y] in edges])
+    optimizer.minimize(number_of_cross_partition_edges)
 
     return optimizer, partition
 
 
-if __name__ == '__main__':
+"""
+Output format: 
+[
+  {
+    'unordered_nodes': [3, 4, 8, 10, ...],
+    'timesteps': [[3, 4], [8, 10], ...],
+    'n_edges': 30
+  },
+  {
+    'unordered_nodes': [...], 
+    ...
+  }
+]
+"""
+def format_partitioning_output(unsorted_nodes, timesteps, optimizer, partition):
+    m = optimizer.model()
+    r = [m.evaluate(partition[i]) for i in range(len(partition))]
+    d = [(unsorted_nodes[i], x.as_long()) for i, x in enumerate(r)]
+    nodes_sorted_into_partitions = list(map(lambda y: y[0], sorted(d, key=lambda x: x[1])))
+
+    partition_0_nodes = [x[0] for x in d if x[1] == 0]
+    partition_1_nodes = [x[0] for x in d if x[1] == 1]
+
+    partition_0_timesteps = []
+    partition_1_timesteps = []
+    inter_partition_edges = []
+
+    for timestamp, edge_set in enumerate(timesteps):
+        for l in [partition_0_timesteps, partition_1_timesteps, inter_partition_edges]:
+            l.append([])
+
+        for edge in edge_set:
+            u = edge[0]
+            v = edge[1]
+            if u in partition_0_nodes and v in partition_0_nodes:
+                partition_0_timesteps[timestamp].append(edge)
+            elif u in partition_1_nodes and v in partition_1_nodes:
+                partition_1_timesteps[timestamp].append(edge)
+            else:
+                inter_partition_edges[timestamp].append(edge)
+
+    formatted_partitions = {
+        'partitions': [
+            {
+                'unordered_nodes': partition_0_nodes,
+                'timesteps': partition_0_timesteps,
+                'n_edges': len(sum(partition_0_timesteps, []))
+            },
+            {
+                'unordered_nodes': partition_1_nodes,
+                'timesteps': partition_1_timesteps,
+                'n_edges': len(sum(partition_1_timesteps, []))
+            }
+        ],
+        'inter_partition_edges': inter_partition_edges
+    }
+    return formatted_partitions, nodes_sorted_into_partitions
+
+
+def apply_partitioning(unsorted_nodes, timesteps, size_difference_param=0.2):
     t = time.time()
     print('Starting partitioning...')
-    dataset = sgdataset.AbstractDataset.load('sample')
+    print('Number of nodes:', len(unsorted_nodes))
+    print('Number of edges:', len(sum(timesteps, [])))
+    optimizer, partition = constraint_set(len(unsorted_nodes), timesteps, size_difference_param)
+    result = optimizer.check()
+    if result == sat:
+        print('Finished!')
+        print('Computation took', time.time() - t, 'seconds.')
+        formatted_output, nodes_sorted_into_partitions = \
+            format_partitioning_output(unsorted_nodes, timesteps, optimizer, partition)
+        
+        return formatted_output, nodes_sorted_into_partitions
+    else:
+        return ['Error: Could not solve partitioning problem.']
+
+
+if __name__ == '__main__':
+    datasetname = 'ErdosRenyi'
+    dataset = sgdataset.AbstractDataset.load(datasetname)
     for data in dataset['dataset']:
-        params = data['params']
-        optimizer, partition = split(params['n_vertices'], data['content'])
-        result = optimizer.check()
-        if result == sat:
-            print('Finished!')
-            m = optimizer.model()
-            r = [m.evaluate(partition[i]) for i in range(len(partition))]
-            d = [(i, x.as_long()) for i, x in enumerate(r)]
-
-            sorted_nodes = list(map(lambda y: y[0], sorted(d, key=lambda x: x[1])))
-            print('Result:', m)
-
-            edges = sum(data['content'], [])
-            edges = [tuple(e) for e in edges]
-            print('Rendering', sorted_nodes, data['content'])
-            render_stream_graph(sorted_nodes, data['content'])
-        else:
-            print('Could not solve')
+        for threshold in [0.05, 0.1]:
+            print('Size different parameter', threshold)
+            params = data['params']
+            unsorted_input_nodes = list(range(params['n_vertices']))
+            formatted, preview = apply_partitioning(unsorted_input_nodes, data['content'], threshold)
+            print('n_inter_partition_edges', len(sum(formatted['inter_partition_edges'], [])))
+            print()
+            render_stream_graph(preview, data['content'])
