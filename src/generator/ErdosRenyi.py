@@ -29,7 +29,7 @@ class ErdosRenyi(AbstractGenerator):
     def __init__(self):
         super().__init__()
 
-    def generate(self, *, n_vertices = 50, n_timesteps = 2):
+    def generate(self, *, n_vertices = 15, n_timesteps = 3):
         n_node_pairs = n_vertices * (n_vertices - 1) // 2
         p_min, p_max = (n_vertices + 3) // 4 / n_node_pairs, n_vertices // 2 / n_node_pairs
 

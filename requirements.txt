@@ -2,3 +2,4 @@ z3
 PyQt5
 svgwrite
 pathlib
+networkx

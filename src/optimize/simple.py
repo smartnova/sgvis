@@ -21,13 +21,14 @@ def Abs(x):
     return If(x >= 0, x, -x)
 
 
-def constraint_system(n_vertices, timesteps):
+def constraint_system(unordered_nodes, timesteps):
     solver = Solver()
+    n_vertices = len(unordered_nodes)
 
     # Assignment of vertices to vertical positions in the drawing
     # `Assignment` is represented by I_i, where i stands for the i'th vertex
     # and the value of I_i is the position.
-    Assignment = [Int('I{}'.format(i)) for i in range(n_vertices)]
+    Assignment = [Int('I{}'.format(i)) for i in unordered_nodes]
     for Position in Assignment:
         solver.add(Position >= 0)
         solver.add(Position < n_vertices)
@@ -36,7 +37,7 @@ def constraint_system(n_vertices, timesteps):
     # The optimization objective is to minimize the accumulated edge distances
     edges = sum(timesteps, [])  # collecting all the edges
     #edges = set([tuple(e) for e in edges])
-    Distance = Sum([Abs(Assignment[u] - Assignment[v]) for u, v in edges])
+    Distance = Sum([Abs(Assignment[unordered_nodes.index(u)] - Assignment[unordered_nodes.index(v)]) for u, v in edges])
 
     edges = [tuple(edge) for edge in edges]
     info = {'n_vertices': n_vertices, 'n_edges': len(set(edges))}
@@ -96,7 +97,8 @@ if __name__ == '__main__':
 
     for data in dataset:
         params = data['params']
-        problem = constraint_system(params['n_vertices'], data['content'])
+        initial_nodes = list(range(params['n_vertices']))
+        problem = constraint_system(initial_nodes, data['content'])
         data['result'] = solve(problem)
 
     resultpath = time.strftime('/tmp/sgvis/{}-{}.json').format(datasetname, datetime)

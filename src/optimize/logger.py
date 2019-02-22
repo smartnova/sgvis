@@ -15,7 +15,7 @@ if __name__ == '__main__' and __package__ is None:
 from generator import sgdataset
 
 
-def logging(datasetname):
+def logger(datasetname):
 
     t = time.time()
     dataset = sgdataset.AbstractDataset.load(datasetname)
