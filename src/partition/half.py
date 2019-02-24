@@ -71,11 +71,9 @@ def format_partitioning_output(unsorted_nodes, timesteps, optimizer, partition):
 
     partition_0_timesteps = []
     partition_1_timesteps = []
-    inter_partition_edges_0 = []
-    inter_partition_edges_1 = []
 
     for timestamp, edge_set in enumerate(timesteps):
-        for l in [partition_0_timesteps, partition_1_timesteps, inter_partition_edges_0, inter_partition_edges_1]:
+        for l in [partition_0_timesteps, partition_1_timesteps]:
             l.append([])
 
         for edge in edge_set:
@@ -85,25 +83,29 @@ def format_partitioning_output(unsorted_nodes, timesteps, optimizer, partition):
                 partition_0_timesteps[timestamp].append(edge)
             elif u in partition_1_nodes and v in partition_1_nodes:
                 partition_1_timesteps[timestamp].append(edge)
-            else:
-                inter_partition_edges_0[timestamp].append(edge)
-                inter_partition_edges_1[timestamp].append(edge)
 
     formatted_partitions = [
         {
             'unordered_nodes': partition_0_nodes,
             'timesteps': partition_0_timesteps,
-            'n_edges': len(sum(partition_0_timesteps, [])),
-            'inter_partition_edges': inter_partition_edges_0
+            'n_edges': len(sum(partition_0_timesteps, []))
         },
         {
             'unordered_nodes': partition_1_nodes,
             'timesteps': partition_1_timesteps,
-            'n_edges': len(sum(partition_1_timesteps, [])),
-            'inter_partition_edges': inter_partition_edges_1
+            'n_edges': len(sum(partition_1_timesteps, []))
         }
     ]
     return formatted_partitions
+
+
+def select_size_difference_param(n_vertices, n_edges):
+    return 0.4
+
+    if n_vertices < 20:
+        return 0.2
+    else:
+        return 0.5
 
 
 def apply_partitioning(unsorted_nodes, timesteps, size_difference_param=0.1):
@@ -111,14 +113,13 @@ def apply_partitioning(unsorted_nodes, timesteps, size_difference_param=0.1):
     print('Starting partitioning...')
     print('Number of nodes:', len(unsorted_nodes))
     print('Number of edges:', len(sum(timesteps, [])))
+    size_difference_param = select_size_difference_param(len(unsorted_nodes), len(sum(timesteps, [])))
+    # print('size_difference_param', size_difference_param)
     optimizer, partition = constraint_set(unsorted_nodes, timesteps, size_difference_param)
     result = optimizer.check()
     if result == sat:
-        print('Finished!')
-        print('Computation took', time.time() - t, 'seconds.')
+        print('Finished! Computation took', time.time() - t, 'seconds.')
         formatted_output = format_partitioning_output(unsorted_nodes, timesteps, optimizer, partition)
-        n_interpartition_edges = len(sum(formatted_output[0]['inter_partition_edges'], []))
-        print('This partitioning introduced', n_interpartition_edges, 'inter-partition edges.')
         
         return formatted_output
     else:
@@ -134,6 +135,5 @@ if __name__ == '__main__':
             params = data['params']
             unsorted_input_nodes = list(range(params['n_vertices']))
             formatted = apply_partitioning(unsorted_input_nodes, data['content'], threshold)
-            print('n_inter_partition_edges', len(sum(formatted[0]['inter_partition_edges'], [])))
             print()
             # render_stream_graph(preview, data['content'])
