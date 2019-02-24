@@ -117,6 +117,8 @@ def apply_partitioning(unsorted_nodes, timesteps, size_difference_param=0.1):
         print('Finished!')
         print('Computation took', time.time() - t, 'seconds.')
         formatted_output = format_partitioning_output(unsorted_nodes, timesteps, optimizer, partition)
+        n_interpartition_edges = len(sum(formatted_output[0]['inter_partition_edges'], []))
+        print('This partitioning introduced', n_interpartition_edges, 'inter-partition edges.')
         
         return formatted_output
     else:
