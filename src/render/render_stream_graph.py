@@ -24,7 +24,8 @@ def render_stream_graph(ordered_nodes, timestamps, svg_path='stream_graph.svg'):
         total_distance = 0
         for timestamp in timestamps:
             for u, v in timestamp:
-                total_distance += abs(nodes.index(u) - nodes.index(v))
+                if u in nodes and v in nodes:
+                    total_distance += abs(nodes.index(u) - nodes.index(v))
 
         return total_distance
 

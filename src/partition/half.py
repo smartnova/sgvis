@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
 
-import logging
 import sys
-import tempfile
 import time
-import json
-
+import logging
 from z3 import *
 
 if __name__ == '__main__' and __package__ is None:
@@ -18,12 +15,15 @@ from generator import SG20190122
 from optimize import logger
 from render.render_stream_graph import render_stream_graph
 
+"""
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s %(message)s',
     handlers=[
         logging.FileHandler('half.log'),
         logging.StreamHandler()])
+"""
+logger.setup_logger('ErdosRenyi')
 
 
 def Abs(x):
@@ -40,18 +40,10 @@ def constraint_set(unordered_nodes, timesteps, size_difference_param):
         optimizer.add(Or(node == 0, node == 1))
 
     size_difference_threshold = int(n_vertices * size_difference_param)
-    print('size_difference_threshold', size_difference_threshold)
 
     # Partition size difference is given by | n - (2 * length_of_either_partition) |
     optimizer.add(Abs(n_vertices - 2 * Sum([partition[i] for i in range(n_vertices)]))
                   <= size_difference_threshold)
-
-    def get_edge(u, v):
-        for single_distance in edge_lengths:
-            if str(single_distance) == 'd_%s,%s_%s' % (t, u, v):
-                return single_distance
-        raise RuntimeError('Tried finding distance between node ' + str(u) + ' and node ' + str(v)
-                           + ' at time ' + str(t) + ', but it did not exist.')
 
     edges = sum(timesteps, [])
     number_of_cross_partition_edges = Sum([Abs(partition[unordered_nodes.index(x)]
@@ -111,17 +103,18 @@ def select_size_difference_param(n_vertices, n_edges):
 
 def apply_partitioning(unsorted_nodes, timesteps, size_difference_param=0.1):
     t = time.time()
-    print('Starting partitioning...')
-    print('Number of nodes:', len(unsorted_nodes))
-    print('Number of edges:', len(sum(timesteps, [])))
     size_difference_param = select_size_difference_param(len(unsorted_nodes), len(sum(timesteps, [])))
-    # print('size_difference_param', size_difference_param)
+    logging.info('Starting individual partitioning. n_vertices_in: {}, n_edges_in: {}, size_difference_param: {}.'
+                 .format(len(unsorted_nodes), len(sum(timesteps, [])), size_difference_param))
+
     optimizer, partition = constraint_set(unsorted_nodes, timesteps, size_difference_param)
     result = optimizer.check()
     if result == sat:
-        print('Finished! Computation took', time.time() - t, 'seconds.')
         formatted_output = format_partitioning_output(unsorted_nodes, timesteps, optimizer, partition)
-        
+        logging.info(('Individual partitioning finished. Time elapsed: {}s. n_vertices_1: {}, n_edges_1: {}. ' +
+                     'n_vertices_2: {}, n_edges_2: {} ')
+                     .format(time.time() - t, len(formatted_output[0]['unordered_nodes']), formatted_output[0]['n_edges'],
+                             len(formatted_output[1]['unordered_nodes']), formatted_output[1]['n_edges']))
         return formatted_output
     else:
         raise RuntimeError('Could not solve partitioning problem.')
@@ -132,9 +125,9 @@ if __name__ == '__main__':
     dataset = sgdataset.AbstractDataset.load(datasetname)
     for data in dataset['dataset']:
         for threshold in [0.05, 0.1]:
-            print('Size different parameter', threshold)
             params = data['params']
             unsorted_input_nodes = list(range(params['n_vertices']))
             formatted = apply_partitioning(unsorted_input_nodes, data['content'], threshold)
-            print()
             # render_stream_graph(preview, data['content'])
+
+    logger.logger(datasetname)
