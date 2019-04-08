@@ -32,6 +32,7 @@ class ErdosRenyi(AbstractGenerator):
     def generate(self, *, n_vertices = 15, n_timesteps = 3):
         n_node_pairs = n_vertices * (n_vertices - 1) // 2
         p_min, p_max = (n_vertices + 3) // 4 / n_node_pairs, n_vertices // 2 / n_node_pairs
+        p_min, p_max = p_min / 1.5, p_max / 1.5
 
         return [list(nx.erdos_renyi_graph(n_vertices, random.uniform(p_min, p_max)).edges)
                 for _ in range(n_timesteps)]
@@ -45,7 +46,6 @@ class ErdosRenyi(AbstractGenerator):
             for n_timesteps in range(2, 5+1)
             for _ in range(5) ]
         """
-
 
 
 if __name__ == '__main__':

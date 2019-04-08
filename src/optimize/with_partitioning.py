@@ -111,9 +111,31 @@ def find_interpartition_directly(partitions, timestamps):
     return all_interpartition_edges, unique_interpartition_edges
 
 
+def find_unconnected_nodes(nodes, timestamps):
+    node_is_connected = {node: False for node in nodes}
+
+    edges = sum(timestamps, [])
+    for u, v in edges:
+        node_is_connected[u] = True
+        node_is_connected[v] = True
+
+    return list(filter(lambda x: not node_is_connected[x], nodes))
+
+
+def get_total_distance(nodes, timestamps):
+    total_distance = 0
+    for timestamp in timestamps:
+        for u, v in timestamp:
+            total_distance += abs(nodes.index(u) - nodes.index(v))
+
+    return total_distance
+
+
 # Main function, applying all the other functions in turn.
 def sort_with_partitioning(data):
     t = time.time()
+    logging.info('Starting "Sort with partitioning".')
+
     # Extract relevant data and render the initial problem
     n_vertices = data['params']['n_vertices']
     original_timesteps = data['content']
@@ -121,16 +143,23 @@ def sort_with_partitioning(data):
     file_path = 'optimize/with_partitioning_svgs/partitioning_'
     render_stream_graph(initial_unsorted_nodes, original_timesteps, file_path + 'initial.svg')
 
+    # Remove nodes that have no edge connections, as they are irrelevant and increase runtime
+    unconnected_nodes = find_unconnected_nodes(initial_unsorted_nodes, original_timesteps)
+    relevant_unsorted_nodes = [x for x in initial_unsorted_nodes if x not in unconnected_nodes]
+
     # Partition the problem binarily until the number of edges is within operational parameters
-    initial_partition = apply_partitioning(initial_unsorted_nodes, original_timesteps)
+    initial_partition = apply_partitioning(relevant_unsorted_nodes, original_timesteps)
     properly_sized_partitions = recursively_partitition(initial_partition[0]) + recursively_partitition(
         initial_partition[1])
-    print('Done partitioning!\nN_edges in each partition:', list(map(lambda x: x['n_edges'], properly_sized_partitions)))
+    partitioning_result = list(map(lambda x: (len(x['unordered_nodes']), x['n_edges']), properly_sized_partitions))
+    print('Done partitioning!\nN_edges in each partition:', partitioning_result)
+    logging.info('Final result of partitioning (n_nodes, n_edges): {}'.format(partitioning_result))
 
     # Sort each partition internally
     print('\n   Sorting partitions...')
     sorted_partitions = sort_partitions_internally(properly_sized_partitions)
     print('Sorting completed!\n')
+    logging.info('Sorting of partitions completed.')
     for p in sorted_partitions:
         render_stream_graph(p['solution'], p['timesteps'], '' + file_path + 'sorted_' + str(i) + '.svg')
 
@@ -138,11 +167,15 @@ def sort_with_partitioning(data):
     print('Merging partitions using simple approach...')
     merged_partitions = merge_partitions_simple(sorted_partitions, original_timesteps)
     print('Merging complete!\n')
+    logging.info('Naive merging of partitions completed.')
 
     # Finished! Render the result.
-    render_stream_graph(merged_partitions['solution'], original_timesteps, file_path + 'final.svg')
+    sorted_nodes = merged_partitions['solution'] + unconnected_nodes
+    render_stream_graph(sorted_nodes, original_timesteps, file_path + 'final.svg')
     print('Sorting of stream graph using simple merging complete! View the results in the optimize/with_partitioning_svgs folder.')
     print('Total computation took', time.time() - t, 'seconds.')
+    logging.info('Optimization using naive merging finished. Time elapsed: {}. Total edge distance: {}.'
+                 .format(time.time() - t, get_total_distance(sorted_nodes, original_timesteps)))
 
     print('\nStarting calculations for a smarter merging strategy.')
     # Show some information about interpartition edges, as that's what we want to minimize
@@ -150,13 +183,17 @@ def sort_with_partitioning(data):
     percentage_interpartition_edges = int(unique_interpartition_edges * 100 / len(sum(original_timesteps, [])))
     print('The total number of inter-partition, unoptimized edges is', unique_interpartition_edges,
           '({}%).'.format(percentage_interpartition_edges))
-    render_stream_graph(merged_partitions['solution'], all_interpartition_edges, file_path + 'interpartition_edges.svg')
+    logging.info('The total number of inter-partition, unoptimized edges is {} ({})'.format(unique_interpartition_edges,
+                                                                                            percentage_interpartition_edges))
+    render_stream_graph(sorted_nodes, all_interpartition_edges, file_path + 'interpartition_edges.svg')
 
     print('Trying smart merging...')
-    smart_merged_partitions = merge_partitions_min_interpartition_distance(sorted_partitions, all_interpartition_edges)
+    smart_merged_partitions = merge_partitions_min_interpartition_distance(sorted_partitions, all_interpartition_edges) + unconnected_nodes
     render_stream_graph(smart_merged_partitions, original_timesteps, file_path + 'final_smart.svg')
     render_stream_graph(smart_merged_partitions, all_interpartition_edges, file_path + 'interpartition_edges_smart.svg')
     print('Smart merging complete! Total computation from beginning took', time.time() - t, 'seconds.')
+    logging.info('Optimization using smart merging finished. Time elapsed: {}. Total edge distance: {}.'
+                 .format(time.time() - t, get_total_distance(smart_merged_partitions, original_timesteps)))
 
     print('\nDebug: n_edges_result', len(sum(merged_partitions['timesteps'], [])), 'n_edges_orig', len(sum(original_timesteps, [])))
 

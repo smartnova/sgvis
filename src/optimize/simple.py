@@ -36,7 +36,7 @@ def constraint_system(unordered_nodes, timesteps):
 
     # The optimization objective is to minimize the accumulated edge distances
     edges = sum(timesteps, [])  # collecting all the edges
-    #edges = set([tuple(e) for e in edges])
+    # edges = set([tuple(e) for e in edges])
     Distance = Sum([Abs(Assignment[unordered_nodes.index(u)] - Assignment[unordered_nodes.index(v)]) for u, v in edges])
 
     edges = [tuple(edge) for edge in edges]

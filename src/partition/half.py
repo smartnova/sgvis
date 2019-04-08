@@ -15,6 +15,7 @@ if __name__ == '__main__' and __package__ is None:
 
 from generator import sgdataset
 from generator import SG20190122
+from optimize import logger
 from render.render_stream_graph import render_stream_graph
 
 logging.basicConfig(
@@ -100,7 +101,7 @@ def format_partitioning_output(unsorted_nodes, timesteps, optimizer, partition):
 
 
 def select_size_difference_param(n_vertices, n_edges):
-    return 0.4
+    return 0.2
 
     if n_vertices < 20:
         return 0.2
