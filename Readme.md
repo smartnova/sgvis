@@ -11,6 +11,9 @@
     2. `$ cd z3`
     3. `$ python scripts/mk_make.py`
     4. `$ cd build && make`
+    5. `$ sudo make install`
+
+    Alternatively, if you don't have sudo rights, you can manually set your python paths to be able to execute Z3 scripts from anywhere in the project.
     5. `$ export PYTHONPATH=<YOUR_FILE_PATH_TO_Z3>/build/python`
     6. `$ export LD_LIBRARY_PATH=<YOUR_FILE_PATH_TO_Z3>/build`
 
@@ -18,7 +21,12 @@
 
 `$ python src/stream_graph.py`
 
------
+or
+
+`$ python src/optimize/simple.py`
+
+or any other Z3 script in the project in the same way.
+
 
 # Ken's Dropbox link
 

@@ -14,11 +14,28 @@ def render_stream_graph(ordered_nodes, timestamps, svg_path='stream_graph.svg'):
     include_unordered_example = True
 
     initial_y_offset = 110
-    height = initial_y_offset + 40 + len(ordered_nodes) * 40
+    height = initial_y_offset + 80 + len(ordered_nodes) * 40
     size = (1350, height) if include_unordered_example else (650, height)
     g = svg.Drawing(svg_path, size=size, profile='full')
     g.add(g.text('Stream graph ordering', insert=(30, 50),
                  fill='black', font_size='40', font_family='Gill Sans, sans-serif', font_weight=100))
+
+    def get_total_distance(nodes):
+        total_distance = 0
+        for timestamp in timestamps:
+            for u, v in timestamp:
+                if u in nodes and v in nodes:
+                    total_distance += abs(nodes.index(u) - nodes.index(v))
+
+        return total_distance
+
+    total_distance_unordered = get_total_distance(sorted(ordered_nodes))
+    total_distance_ordered = get_total_distance(ordered_nodes)
+
+    g.add(g.text('Total distance: ' + str(total_distance_unordered), insert=(70, height - 40),
+                 fill='black', font_size='35', font_family='Gill Sans, sans-serif', font_weight=100))
+    g.add(g.text('Total distance: ' + str(total_distance_ordered), insert=(800, height - 40),
+                 fill='black', font_size='35', font_family='Gill Sans, sans-serif', font_weight=100))
 
     # ########################## Nodes ################################
 
@@ -58,8 +75,11 @@ def render_stream_graph(ordered_nodes, timestamps, svg_path='stream_graph.svg'):
                 g.add(svg.shapes.Circle(center=(x, target_y), r=4, stroke_width=1, fill='black', stroke='black'))
 
     def get_y_offset_of_node(node, ordered):
-        i = sorted(ordered_nodes).index(node) if ordered else ordered_nodes.index(node)
-        return initial_y_offset + i * 40
+        try:
+            i = sorted(ordered_nodes).index(node) if ordered else ordered_nodes.index(node)
+            return initial_y_offset + i * 40
+        except ValueError:
+            raise RuntimeError('An edge in the dataset points to a node outside the dataset.')
 
     # get_curve_radius_offset is a function that takes the y-coordinate of two nodes, and outputs information about
     # how the curve between them should look if they are connected. Specifically, it returns the radius of the curve.
