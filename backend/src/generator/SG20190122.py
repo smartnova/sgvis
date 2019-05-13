@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from generator.sgdataset import *
+from src.generator.sgdataset import *
 
 class SG20190122(AbstractDataset):
     '''

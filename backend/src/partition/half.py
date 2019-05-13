@@ -10,10 +10,10 @@ if __name__ == '__main__' and __package__ is None:
     # To ensure the generator import works even with wierd Z3 python paths
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
-from generator import sgdataset
-from generator import SG20190122
-from optimize import logger
-from render.render_stream_graph import render_stream_graph
+from src.generator import sgdataset
+from src.generator import SG20190122
+from src.optimize import logger
+from src.render.render_stream_graph import render_stream_graph
 
 """
 logging.basicConfig(

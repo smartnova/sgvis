@@ -14,10 +14,10 @@ if __name__ == '__main__' and __package__ is None:
     # To ensure the generator import works even with wierd Z3 python SVG_FILE_PATHs
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
-from generator import sgdataset
-from optimize import simple, logger
-from partition.half import apply_partitioning
-from render.render_stream_graph import render_stream_graph
+from src.generator import sgdataset
+from src.optimize import simple, logger
+from src.partition.half import apply_partitioning
+from src.render.render_stream_graph import render_stream_graph
 
 
 SVG_FILE_PATH = 'optimize/with_partitioning_svgs/partitioning_'
@@ -55,7 +55,7 @@ def sort_partitions_internally(partitions):
         solution['timesteps'] = partition['timesteps']
 
         solutions.append(solution)
-        render_stream_graph(solution['solution'], partition['timesteps'], '' + SVG_FILE_PATH + 'sorted_' + str(i) + '.svg')
+        # # render_stream_graph(solution['solution'], partition['timesteps'], '' + SVG_FILE_PATH + 'sorted_' + str(i) + '.svg')
 
     return solutions
 
@@ -93,7 +93,7 @@ def merge_partitions_min_interpartition_distance(sorted_partitions, interpartiti
     problem = simple.constraint_system(partition_indexes, interpartition_edges)
     solution = simple.solve(problem)
 
-    render_stream_graph(solution['solution'], interpartition_edges, 'optimize/with_partitioning_svgs/partitioning_smart_merge.svg')
+    # # render_stream_graph(solution['solution'], interpartition_edges, 'optimize/with_partitioning_svgs/partitioning_smart_merge.svg')
     sorted_nodes = sum(map(lambda y: y[1], sorted(nodes_in_partitions, key=lambda x: solution['solution'].index(x[0]))), [])
     return sorted_nodes
 
@@ -169,7 +169,7 @@ def sort_with_partitioning(data):
 
     # Finished with naive approach. Render the result.
     sorted_nodes = merged_partitions['solution'] + unconnected_nodes
-    render_stream_graph(sorted_nodes, original_timesteps, SVG_FILE_PATH + 'final.svg')
+    # # render_stream_graph(sorted_nodes, original_timesteps, SVG_FILE_PATH + 'final.svg')
     total_distance = get_total_distance(sorted_nodes, original_timesteps)
     logging.info('Optimization using naive merging finished. Time elapsed: {}s. Total edge distance: {}.'
                  .format(time.time() - t, total_distance))
@@ -179,28 +179,36 @@ def sort_with_partitioning(data):
     percentage_interpartition_edges = int(unique_interpartition_edges * 100 / n_edges)
     logging.info('The total number of inter-partition, unoptimized edges is {} ({}%)'.format(unique_interpartition_edges,
                                                                                             percentage_interpartition_edges))
-    render_stream_graph(sorted_nodes, all_interpartition_edges, SVG_FILE_PATH + 'interpartition_edges.svg')
+    # render_stream_graph(sorted_nodes, all_interpartition_edges, SVG_FILE_PATH + 'interpartition_edges.svg')
 
     # Attempt a smarter merging
     smart_merged_partitions = merge_partitions_min_interpartition_distance(sorted_partitions, all_interpartition_edges) + unconnected_nodes
-    render_stream_graph(smart_merged_partitions, original_timesteps, SVG_FILE_PATH + 'final_smart.svg')
-    render_stream_graph(smart_merged_partitions, all_interpartition_edges, SVG_FILE_PATH + 'interpartition_edges_smart.svg')
+    # render_stream_graph(smart_merged_partitions, original_timesteps, SVG_FILE_PATH + 'final_smart.svg')
+    # render_stream_graph(smart_merged_partitions, all_interpartition_edges, SVG_FILE_PATH + 'interpartition_edges_smart.svg')
     total_distance_smart = get_total_distance(smart_merged_partitions, original_timesteps)
     logging.info('Optimization using smart merging finished. Time elapsed: {}s. Total edge distance: {}.'
                  .format(time.time() - t, total_distance_smart))
 
-    logger.log_data({'n_vertices': n_vertices, 'n_edges': n_edges,
+    output = {'n_vertices': n_vertices, 'n_edges': n_edges,
                      'ordered_nodes': sorted_nodes, 'ordered_nodes_smart': smart_merged_partitions,
                      'total_distance': total_distance, 'total_distance_smart': total_distance_smart,
-                     'timesteps': original_timesteps},
-                    'output')
+                     'timesteps': original_timesteps}
+    logger.log_data(output, 'output')
+    with open('./latest_output.json', 'w') as w: json.dump(output, w)
+    return output
+
+
+def run_with_generated_dataset(datasetname='ErdosRenyi'):
+    dataset = sgdataset.AbstractDataset.load(datasetname)
+    logger.setup_logger(datasetname)
+    final_output = []
+
+    for i, data in enumerate(dataset['dataset']):
+        final_output.append(sort_with_partitioning(data))
+
+    return final_output
 
 
 if __name__ == '__main__':
-    datasetname = 'ErdosRenyi'
-    dataset = sgdataset.AbstractDataset.load(datasetname)
-    logger.setup_logger(datasetname)
-
-    for i, data in enumerate(dataset['dataset']):
-        sort_with_partitioning(data)
+    run_with_generated_dataset()
 

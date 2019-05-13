@@ -37,6 +37,7 @@ class AbstractDataset:
         for data in d['dataset']:
             print(data['params'], [len(timestep) for timestep in data['content']])
 
+
 class AbstractGenerator(AbstractDataset):
     def __init__(self, **params):
         super().__init__(**params)

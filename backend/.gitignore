@@ -109,3 +109,5 @@ src/z3/
 
 # svgs
 *.svg
+
+*.latest_output.json

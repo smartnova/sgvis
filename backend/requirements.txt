@@ -3,3 +3,5 @@ PyQt5
 svgwrite
 pathlib
 networkx
+flask
+flask_cors

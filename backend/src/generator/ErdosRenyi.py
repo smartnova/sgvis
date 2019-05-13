@@ -9,7 +9,7 @@ if __name__ == '__main__' and __package__ is None:
     # To ensure the generator import works even with wierd Z3 python paths
     sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
 
-from generator.sgdataset import *
+from src.generator.sgdataset import *
 
 
 class ErdosRenyi(AbstractGenerator):
@@ -26,7 +26,11 @@ class ErdosRenyi(AbstractGenerator):
 
     GENERATOR_VERSION = 0.1
 
-    def __init__(self):
+    nverts_and_timesteps = []
+
+    def __init__(self, nverts_and_timesteps):
+        print('nverts_and_timesteps', nverts_and_timesteps)
+        self.nverts_and_timesteps = nverts_and_timesteps
         super().__init__()
 
     def generate(self, *, n_vertices = 15, n_timesteps = 3):
@@ -38,18 +42,13 @@ class ErdosRenyi(AbstractGenerator):
                 for _ in range(n_timesteps)]
 
     def parameters(self):
-        return [{'n_vertices': 100, 'n_timesteps': 3}]
-        """
-        return [
-            { 'n_vertices': n, 'n_timesteps': n_timesteps }
-            for n in range(10, 25+1, 3)
-            for n_timesteps in range(2, 5+1)
-            for _ in range(5) ]
-        """
+        return [{'n_vertices': n_vertices, 'n_timesteps': n_timesteps}
+                for n_vertices, n_timesteps in self.nverts_and_timesteps]
 
 
 if __name__ == '__main__':
-    ErdosRenyi().save()
+    sample_nverts_timesteps = [(100, 3)]
+    ErdosRenyi(sample_nverts_timesteps).save()
 
     # Load the dataset and presents the overview of the data
 

@@ -1,0 +1,70 @@
+.main {
+  margin: 0;
+  height: 100%;
+}
+
+.header {
+  background-color: #282c34;
+  color: white;
+  padding: 15px 0;
+  margin-bottom: 20px;
+  display: flex;
+}
+
+.logoCap {
+  font-size: 20px;
+  font-weight: 500;
+  white-space: pre;
+  margin-right: 3px;
+}
+
+.logo {
+  font-size: 12px;
+  text-transform: uppercase;
+  margin-left: 25px;
+}
+
+.menu {
+  margin-left: 20px;
+}
+
+.menu a {
+  color: #dedede;
+}
+
+.menu a:hover {
+  color: white;
+  text-decoration: none;
+}
+
+.logoLine {
+  display: block;
+  margin-top: -5px;
+}
+
+.content {
+  width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.block {
+  padding: 15px 20px;
+  background-color: white;
+  display: inline-block;
+  margin: 10px;
+}
+
+.about {
+  width: 100%;
+  text-align: center;
+}
+
+.result {
+  flex: 1;
+}
+
+.buttons {
+  width: 30%;
+}
