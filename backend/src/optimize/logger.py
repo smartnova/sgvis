@@ -17,11 +17,11 @@ from src.generator import sgdataset
 global_datasetname = ''
 global_datetime = ''
 
-def setup_logger(datasetname):
+def setup_logger(dataset):
     global global_datasetname, global_datetime
 
+    datasetname = dataset['kind']
     global_datasetname = datasetname
-    dataset = sgdataset.AbstractDataset.load(datasetname)
 
     os.makedirs('/tmp/sgvis', exist_ok=True)
     datetime = time.strftime('%Y%m%d-%H%M%S').format(datasetname)

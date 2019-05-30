@@ -1,6 +1,6 @@
 import json
 
-from flask import Flask, request
+from flask import Flask, request, Response
 from flask_cors import CORS
 
 from src.generator.ErdosRenyi import ErdosRenyi
@@ -26,7 +26,10 @@ def generate():
 
 @app.route("/optimize")
 def optimize():
-    dataset = request.args.get('dataset') or 'ErdosRenyi'
+    print('optimizing')
+    datasetname = request.args.get('dataset') or 'ErdosRenyi'
+    dataset = AbstractDataset.load(datasetname)
+    print('in optimize. dataset', dataset)
     output = run_with_generated_dataset(dataset)
     print('output', output)
     return json.dumps(output, indent=2), {'Content-Type': 'application/json'}
@@ -39,3 +42,24 @@ def latest():
         latest = json.load(file)
         return json.dumps(latest, indent=2), {'Content-Type': 'application/json'}
 
+
+@app.route("/custom", methods=['POST'])
+def custom():
+    input = request.get_json()
+    print('custom input', input)
+    try:
+        assert input['kind']
+        assert input['doc']
+        assert input['dataset']
+        assert input['dataset'][0]
+        assert input['dataset'][0]['content']
+        assert input['dataset'][0]['params']
+        assert input['dataset'][0]['params']['n_vertices']
+        assert input['dataset'][0]['params']['n_timesteps']
+    except AssertionError:
+        print('Input had incorrect format:')
+        return Response('Input had incorrect format:', 400)
+
+    output = run_with_generated_dataset(input)
+    print('custom output')
+    return json.dumps(output, indent=2), {'Content-Type': 'application/json'}

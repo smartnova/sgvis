@@ -198,17 +198,12 @@ def sort_with_partitioning(data):
     return output
 
 
-def run_with_generated_dataset(datasetname='ErdosRenyi'):
-    dataset = sgdataset.AbstractDataset.load(datasetname)
-    logger.setup_logger(datasetname)
+def run_with_generated_dataset(dataset):
+    logger.setup_logger(dataset)
     final_output = []
 
     for i, data in enumerate(dataset['dataset']):
         final_output.append(sort_with_partitioning(data))
 
     return final_output
-
-
-if __name__ == '__main__':
-    run_with_generated_dataset()
 

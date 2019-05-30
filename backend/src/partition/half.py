@@ -23,7 +23,6 @@ logging.basicConfig(
         logging.FileHandler('half.log'),
         logging.StreamHandler()])
 """
-logger.setup_logger('ErdosRenyi')
 
 
 def Abs(x):
@@ -130,4 +129,4 @@ if __name__ == '__main__':
             formatted = apply_partitioning(unsorted_input_nodes, data['content'], threshold)
             # render_stream_graph(preview, data['content'])
 
-    logger.logger(datasetname)
+    logger.logger(dataset)
