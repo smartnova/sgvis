@@ -26,8 +26,19 @@ class App extends Component {
     this.fetch_latest();
   }
 
+  updateData = data => {
+    console.log('updating top level data');
+    this.setState({ data });
+  };
+
   render() {
-    return <Main data={this.state.data} fetch_latest={this.fetch_latest} />;
+    return (
+      <Main
+        data={this.state.data}
+        fetch_latest={this.fetch_latest}
+        updateData={this.updateData}
+      />
+    );
   }
 }
 

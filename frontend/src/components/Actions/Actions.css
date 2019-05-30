@@ -1,0 +1,65 @@
+.actions input,
+select {
+  width: 100%;
+  display: block;
+  margin: 5px 0 10px;
+}
+
+.actions {
+  padding: 20px 20px 20px 50px;
+}
+
+.collapser {
+  position: absolute;
+}
+
+.collapser,
+.uncollapser {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  background-image: linear-gradient(to right, #eee, white);
+  width: 30px;
+  height: 100%;
+  border-radius: 3px;
+  color: #999;
+  text-align: center;
+}
+
+.collapser:hover,
+.uncollapser:hover {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.actionContainer {
+  position: relative;
+  display: flex;
+  height: 100%;
+  width: 400px;
+}
+
+.customForm {
+  display: flex;
+  flex-direction: column;
+}
+
+.customForm textarea {
+  margin: 5px 0 10px;
+  min-height: 100px;
+}
+
+.customFormat {
+  background-color: #ddd;
+  font-family: 'Courier New';
+  border: 1px solid #999;
+  white-space: pre;
+}
+
+.formatSelector {
+  margin-bottom: 5px;
+}
+
+.formatSelector:hover {
+  cursor: pointer;
+}

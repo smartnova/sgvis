@@ -8,6 +8,17 @@
   color: white;
   padding: 15px 0;
   margin-bottom: 20px;
+}
+
+.headerContent {
+  width: 1080px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 20px;
+}
+
+.headerLeft {
   display: flex;
 }
 
@@ -21,7 +32,6 @@
 .logo {
   font-size: 12px;
   text-transform: uppercase;
-  margin-left: 25px;
 }
 
 .menu {
@@ -47,10 +57,12 @@
   margin: 0 auto;
   display: flex;
   flex-wrap: wrap;
+  padding-bottom: 50px;
 }
 
 .block {
   padding: 15px 20px;
+  border-radius: 3px;
   background-color: white;
   display: inline-block;
   margin: 10px;
@@ -62,9 +74,13 @@
 }
 
 .result {
-  flex: 1;
 }
 
 .buttons {
-  width: 30%;
+}
+
+.middle {
+  display: flex;
+  flex-wrap: nowrap;
+  width: 100%;
 }

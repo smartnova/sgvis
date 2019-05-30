@@ -1,12 +1,5 @@
-const callHttp = (endpoint, params) => {
+const callHttp = (endpoint, params, method = 'GET', body = undefined) => {
   const baseURL = 'http://localhost:5000/';
-  console.log('in clal', params);
-
-  params &&
-    Object.keys(params).map(key =>
-      console.log('key:', key, 'value', params[key])
-    );
-
   const flattenedParams = !params
     ? ''
     : '?' +
@@ -18,7 +11,16 @@ const callHttp = (endpoint, params) => {
 
   const targetUrl = `${baseURL}${endpoint}${flattenedParams}`;
 
-  return fetch(targetUrl).then(response => response.json());
+  return fetch(
+    targetUrl,
+    body
+      ? {
+          method,
+          body: JSON.stringify(body),
+          headers: { 'Content-Type': 'application/json' }
+        }
+      : {}
+  ).then(response => response.json());
 };
 
 export default callHttp;

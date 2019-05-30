@@ -1,0 +1,130 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  background-color: #dedede;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+li {
+  list-style-type: none;
+}
+
+a {
+  font-weight: 500;
+  color: inherit;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #282c34;
+  text-decoration: underline;
+}
+
+h1,
+h2,
+h3 {
+  text-transform: uppercase;
+  font-weight: 300;
+  margin-top: 0;
+}
+
+h1::first-letter,
+h2::first-letter,
+h3::first-letter {
+  font-size: 1.5em;
+  font-weight: 400;
+  margin-right: 2px;
+}
+
+h1 {
+  font-size: 20px;
+}
+
+h2 {
+  font-size: 18px;
+}
+
+h3 {
+  font-size: 16px;
+}
+
+input[type='number'] {
+  padding: 7px;
+  max-width: calc(100% - 16px);
+  border-radius: 5px;
+  font-size: 14px;
+  box-shadow: none;
+}
+
+input[type='number']:focus,
+select:focus,
+button:focus {
+  outline: none;
+}
+
+select {
+  padding: 10px;
+  height: 30px;
+  border-radius: 5px;
+  font-size: 14px;
+  box-shadow: none;
+}
+
+button {
+  padding: 10px;
+  border-radius: 5px;
+  font-size: 14px;
+  box-shadow: #282c34 1px 1px;
+  transition: background 0.3s;
+}
+
+button:hover {
+  background: #ccc;
+  cursor: pointer;
+}
+
+/* Spinners */
+.lds-ring {
+  display: inline-block;
+  position: relative;
+  width: 64px;
+  height: 64px;
+}
+.lds-ring div {
+  box-sizing: border-box;
+  display: block;
+  position: absolute;
+  width: 51px;
+  height: 51px;
+  margin: 6px;
+  border: 6px solid #ccc;
+  border-radius: 50%;
+  animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  border-color: #ccc transparent transparent transparent;
+}
+.lds-ring div:nth-child(1) {
+  animation-delay: -0.45s;
+}
+.lds-ring div:nth-child(2) {
+  animation-delay: -0.3s;
+}
+.lds-ring div:nth-child(3) {
+  animation-delay: -0.15s;
+}
+@keyframes lds-ring {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
